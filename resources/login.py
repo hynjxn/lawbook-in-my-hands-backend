@@ -1,3 +1,4 @@
+import bcrypt
 from flask import request
 from flask_restful import Resource
 from http import HTTPStatus
@@ -35,7 +36,7 @@ class LoginResource(Resource):
         user_id = result[0]
         user_password = result[4]
 
-        if data['password'] != user_password:
+        if bcrypt.checkpw(data['password'].encode('utf-8'), user_password.encode('utf-8')):
             return {'status': HTTPStatus.BAD_REQUEST, 'message': '비밀번호가 옳바르지 않습니다.'}, HTTPStatus.BAD_REQUEST
 
         # jwt로 인증 토큰 생성
