@@ -1,3 +1,4 @@
+import bcrypt
 from flask import request
 from flask_restful import Resource
 from http import HTTPStatus
@@ -7,30 +8,31 @@ from db.db import get_mysql_connection
 class SignupResource(Resource):
 
     def post(self):
-        # 클라이언트가 요청한 request의 body에 있는 json 가져오기
         data = request.get_json()
 
         # 필수값이 있는지 체크
-        if 'loginId' not in data:
+        if 'loginId' not in data or 'password' not in data or 'name' not in data or 'nickname' not in data:
             return {'status' : HTTPStatus.BAD_REQUEST, 'message' : '필수값이 없습니다.'}, HTTPStatus.BAD_REQUEST
 
-        # 데이터베이스 커넥션
+        # 비밀번호 암호화
+        pw = data['password']
+        hashed_pw = bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt())
+        saved_pw = hashed_pw.decode('utf-8')
+
+        # 데이터베이스에서 사용자 저장
         connection = get_mysql_connection()
+        cursor = connection.cursor()
+        query = """insert into user (loginId, password, name, nickname) 
+                    values (%s, %s, %s, %s);"""
+        param = (data['loginId'], saved_pw, data['name'], data['nickname'])
 
-        # 커서 가져오기
-        cursor = connection.cursor(dictionary=True)
-
-        # 쿼리문 작성
-        query = """insert into user (loginId, password, name, nickname) values (%s, %s, %s, %s);"""
-        param = (data['loginId'], data['password'], data['name'], data['nickname'])
-
-        # 쿼리문 실행
         cursor.execute(query, param)
         connection.commit()
 
-        # 커서와 커넥션 닫기
+        user_id = cursor.lastrowid
+
         cursor.close()
         connection.close()
 
         # 클라이언트에 응답하기
-        return {}, HTTPStatus.OK
+        return {'user_id' : user_id}, HTTPStatus.OK
