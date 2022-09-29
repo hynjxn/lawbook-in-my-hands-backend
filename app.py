@@ -6,6 +6,7 @@ from resources.logout import jwt_blocklist
 from resources.test import TestResource
 from resources.signup import SignupResource
 from resources.login import LoginResource
+from resources.consult import ConsultResource, ConsultGetResource
 
 # Flask 객체 인스턴스 생성
 app = Flask(__name__)
@@ -33,6 +34,8 @@ api = Api(app)  # API 설정을 한다. 괄호 안에는 위에서 받은 플라
 api.add_resource(TestResource, '/test')
 api.add_resource(SignupResource, '/signup')
 api.add_resource(LoginResource, '/login')
+api.add_resource(ConsultResource, '/consult')
+api.add_resource(ConsultGetResource, '/consult/<int:consult_id>')
 
 if __name__ == '__main__':
     app.run()

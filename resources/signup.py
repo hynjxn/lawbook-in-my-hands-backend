@@ -29,8 +29,10 @@ class SignupResource(Resource):
         cursor.execute(query, param)
         connection.commit()
 
+        user_id = cursor.lastrowid
+
         cursor.close()
         connection.close()
 
         # 클라이언트에 응답하기
-        return {}, HTTPStatus.OK
+        return {'user_id' : user_id}, HTTPStatus.OK

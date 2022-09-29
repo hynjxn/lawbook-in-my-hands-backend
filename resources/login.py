@@ -36,11 +36,12 @@ class LoginResource(Resource):
         user_id = result[0]
         user_password = result[4]
 
-        if bcrypt.checkpw(data['password'].encode('utf-8'), user_password.encode('utf-8')):
+        if not bcrypt.checkpw(data['password'].encode('utf-8'), user_password.encode('utf-8')):
             return {'status': HTTPStatus.BAD_REQUEST, 'message': '비밀번호가 옳바르지 않습니다.'}, HTTPStatus.BAD_REQUEST
 
         # jwt로 인증 토큰 생성
-        access_token = create_access_token(identity=user_id)
+        # expires_delta는 토큰의 만료일자, false면 무기한, 추후에 만료시간도 설정해야 됨
+        access_token = create_access_token(identity=user_id, expires_delta= False)
 
         # 클라이언트에 토큰 보내기
         return {'user_id' : user_id, 'access_token' : access_token}, HTTPStatus.OK
