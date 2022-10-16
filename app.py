@@ -4,7 +4,7 @@ from flask_restful import Api
 from config.config import Config
 from resources.logout import jwt_blocklist
 from resources.test import TestResource
-from resources.signup import SignupResource
+from resources.signup import SignupResource, LoginidResource
 from resources.login import LoginResource
 from resources.consult import ConsultResource, ConsultGetResource
 
@@ -33,6 +33,7 @@ api = Api(app)  # API 설정을 한다. 괄호 안에는 위에서 받은 플라
 # 3. 경로(Path)와 리소스(Resource)를 연결 한다.
 api.add_resource(TestResource, '/test')
 api.add_resource(SignupResource, '/signup')
+api.add_resource(LoginidResource, '/loginid/<string:loginid>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(ConsultResource, '/consult')
 api.add_resource(ConsultGetResource, '/consult/<int:consult_id>')

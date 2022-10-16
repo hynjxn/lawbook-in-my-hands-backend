@@ -1,5 +1,6 @@
 import bcrypt
 from flask import request
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource
 from http import HTTPStatus
 from db.db import get_mysql_connection
@@ -7,6 +8,7 @@ from db.db import get_mysql_connection
 
 class SignupResource(Resource):
 
+    # 회원가입 api
     def post(self):
         data = request.get_json()
 
@@ -36,3 +38,29 @@ class SignupResource(Resource):
 
         # 클라이언트에 응답하기
         return {'user_id' : user_id}, HTTPStatus.OK
+
+
+class LoginidResource(Resource):
+
+    # 로그인아이디 중복 확인 api
+    def get(self, loginid):
+
+        # 데이터베이스에서 로그인아이디 조회
+        connection = get_mysql_connection()
+        cursor = connection.cursor()
+        query = """select * from user where loginId = %s;"""
+        param = (loginid,)
+
+        cursor.execute(query, param)
+        result = cursor.fetchone()
+        print(result)
+
+        cursor.close()
+        connection.close()
+
+        # 해당 로그인아이디가 중복인지 확인
+        if result is not None:
+            return {'status' : HTTPStatus.BAD_REQUEST, 'message' : '중복된 아이디입니다.'}
+
+        return {}, HTTPStatus.OK
+
