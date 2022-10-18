@@ -9,7 +9,7 @@ from konlpy.tag import Komoran
 # 신은수
 kom = Komoran()
 # df = pd.read_csv("data.csv")
-doc2vec_model = Doc2Vec.load('d2v_judge_size200_min5_epoch20.model')
+doc2vec_model = Doc2Vec.load('/Users/minah/PycharmProjects/lawbook/lawbook-in-my-hands-backend/resources/d2v_judge_size200_min5_epoch20.model')
 
 test = '방송사가 술에 취해 길에 쓰러졌던 40대 남자가 정신병원에 4년간이나 강제수용된 사실을 보도하면서, 정신보건법령상 제도의 운영상 문제점을 부각시키기 위하여 사실관계를 단순화시켜 그 일부 측면만을 강조하는 과정에서 취재된 정신병원의 사정을 방송 내용에 포함시키지 않았다 하더라도, 전체적인 맥락에서 방송 내용의 중요 부분이 진실에 합치함을 이유로 정정보도청구의 요건을 갖추지 못하였다고 한 사례'
 print(test)
