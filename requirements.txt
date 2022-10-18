@@ -22,3 +22,6 @@ six==1.16.0
 urllib3==1.26.12
 Werkzeug==2.2.2
 zipp==3.8.1
+
+gensim~=3.8.3
+konlpy~=0.6.0
