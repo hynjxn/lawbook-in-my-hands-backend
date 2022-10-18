@@ -39,4 +39,4 @@ api.add_resource(ConsultResource, '/consult')
 api.add_resource(ConsultGetResource, '/consult/<int:consult_id>')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False, host='0.0.0.0')
