@@ -60,7 +60,7 @@ class LoginidResource(Resource):
 
         # 해당 로그인아이디가 중복인지 확인
         if result is not None:
-            return {'status' : HTTPStatus.BAD_REQUEST, 'message' : '중복된 아이디입니다.'}
+            return {'status' : HTTPStatus.BAD_REQUEST, 'message' : '중복된 아이디입니다.'}, HTTPStatus.BAD_REQUEST
 
         return {}, HTTPStatus.OK
 
