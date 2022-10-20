@@ -1,3 +1,5 @@
+
+import requests
 from flask import request
 from flask_restful import Resource
 from http import HTTPStatus
@@ -5,25 +7,7 @@ from db.db import get_mysql_connection
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from gensim.models import Doc2Vec
 from konlpy.tag import Komoran
-
-# 신은수
-kom = Komoran()
-# df = pd.read_csv("data.csv")
-doc2vec_model = Doc2Vec.load('/Users/minah/PycharmProjects/lawbook/lawbook-in-my-hands-backend/resources/d2v_judge_size200_min5_epoch20.model')
-
-test = '방송사가 술에 취해 길에 쓰러졌던 40대 남자가 정신병원에 4년간이나 강제수용된 사실을 보도하면서, 정신보건법령상 제도의 운영상 문제점을 부각시키기 위하여 사실관계를 단순화시켜 그 일부 측면만을 강조하는 과정에서 취재된 정신병원의 사정을 방송 내용에 포함시키지 않았다 하더라도, 전체적인 맥락에서 방송 내용의 중요 부분이 진실에 합치함을 이유로 정정보도청구의 요건을 갖추지 못하였다고 한 사례'
-print(test)
-tokened_test = ['/'.join(word) for word in kom.pos(test)]
-
-test = tokened_test
-print(test)
-
-topn = 5
-test_vector = doc2vec_model.infer_vector(test)
-result_list = doc2vec_model.docvecs.most_similar([test_vector], topn=topn)
-
-for i in range(topn):
-    print("{}위. {}, {}".format(i + 1, result_list[i][1], result_list[i][0]))
+from xml_to_dict import XMLtoDict
 
 
 class ConsultResource(Resource):
@@ -39,26 +23,72 @@ class ConsultResource(Resource):
 
         # jwt에서 user_id 뽑아오기
         user_id = get_jwt_identity()
-        print(user_id)
 
         # 데이터베이스에서 상담 저장
         connection = get_mysql_connection()
         cursor = connection.cursor()
-        query = """insert into consult (content, user_id) 
-                    values (%s, %s);"""
+        query = """insert into consult (content, user_id) values (%s, %s);"""
         param = (data['content'], user_id)
 
         cursor.execute(query, param)
         connection.commit()
 
-        consult_id = cursor.lastrowid
+        cursor.close()
+        connection.close()
+
+        # doc2vec 모델로 유사한 판례 인덱스 찾기
+        # 지금 모델은 임시용 -> 추후에 모델 다시 학습해야 함
+        # 모델 학습시킬 때랑 똑같은 방법으로 전처리 진행해야 함
+        kom = Komoran()
+        doc2vec_model = Doc2Vec.load('doc2vec_model/d2v_judge_size200_min5_epoch20.model')
+
+        test = data['content']
+
+        tokened_test = ['/'.join(word) for word in kom.pos(test)]
+
+        topn = 5
+        test_vector = doc2vec_model.infer_vector(tokened_test)
+        result_list = doc2vec_model.docvecs.most_similar([test_vector], topn=topn)
+
+        index_list = []
+        for i in range(topn):
+            print("{}위, 유사도 :{}, 인덱스 :{} ".format(i + 1, result_list[i][1], result_list[i][0]))
+            index_list.append(int(result_list[i][0]))
+
+        # 데이터베이스에서 판례 조회
+        connection = get_mysql_connection()
+        cursor = connection.cursor()
+        query = """select * from case_law c where c.case_serial_id in ({list}) """.format(list=', '.join(str(i) for i in index_list))
+
+        cursor.execute(query)
+        result = cursor.fetchall()
+        print("result : ", result)
 
         cursor.close()
         connection.close()
 
+        # 조회한 판례의 url을 통해 데이터 가져오기
+        case_list = []
+
+        for i in range(len(result)):
+            url = result[i][2]
+            response = requests.get(url)
+            xd = XMLtoDict()
+            parse_response = xd.parse(response.content)
+            print("parse_response : ", parse_response)
+
+            a = parse_response['PrecService']['법원명']
+            b = parse_response['PrecService']['선고일자']
+            c = parse_response['PrecService']['선고']
+            d = parse_response['PrecService']['사건번호']
+            e = parse_response['PrecService']['판결유형']
+            f = parse_response['PrecService']['사건명']
+
+            case = {'법원명' : a, '선고일자' : b, '선고' : c, '사건번호' : d, '판결유형' : e, '사건명' : f, 'url' : url }
+            case_list.append(case)
 
         # 클라이언트에 응답
-        return {'consult_id': consult_id}, HTTPStatus.OK
+        return {"cases" : case_list}, HTTPStatus.OK
 
 
 class ConsultGetResource(Resource):
