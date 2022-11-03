@@ -10,14 +10,17 @@ class ScrapResource(Resource):
     # 판결문 스크랩 여부 조회 api
     @jwt_required()
     def get(self, case_serial_id):
+        args = request.args
+        consult_id = args.get("consult_id")
+
         # jwt에서 user_id 뽑아오기
         user_id = get_jwt_identity()
 
         # 데이터베이스에서 스크랩 여부 확인
         connection = get_mysql_connection()
         cursor = connection.cursor()
-        query = """select * from bookmark where user_id = %s and case_id = %s;"""
-        param = (user_id, case_serial_id,)
+        query = """select * from bookmark where user_id = %s and case_id = %s and consult_id = %s;"""
+        param = (user_id, case_serial_id, consult_id)
 
         cursor.execute(query, param)
         result = cursor.fetchone()
@@ -34,7 +37,8 @@ class ScrapResource(Resource):
     # 판결문 스크랩 생성 api
     @jwt_required()
     def post(self, case_serial_id):
-        data = request.get_json()
+        args = request.args
+        consult_id = args.get("consult_id")
 
         # jwt에서 user_id 뽑아오기
         user_id = get_jwt_identity()
@@ -44,8 +48,8 @@ class ScrapResource(Resource):
         cursor = connection.cursor()
 
         # 이미 스크랩한 판결문이면 에러
-        query = """select * from bookmark where user_id = %s and case_id = %s"""
-        param = (user_id, case_serial_id,)
+        query = """select * from bookmark where user_id = %s and case_id = %s and consult_id = %s"""
+        param = (user_id, case_serial_id, consult_id)
         cursor.execute(query, param)
         result = cursor.fetchone()
         if result is not None:
@@ -53,22 +57,22 @@ class ScrapResource(Resource):
 
         # 스크랩 생성하기
         query = """insert into bookmark (consult_id, user_id, case_id) values (%s, %s, %s)"""
-        param = (data['consult_id'], user_id, case_serial_id)
+        param = (consult_id, user_id, case_serial_id)
 
         cursor.execute(query, param)
         connection.commit()
-
-        scrap_id = cursor.lastrowid
 
         cursor.close()
         connection.close()
 
         # 클라이언트에 응답
-        return {'scrap_id': scrap_id}, HTTPStatus.OK
+        return {}, HTTPStatus.OK
 
     # 판결문 스크랩 취소 api
     @jwt_required()
     def delete(self, case_serial_id):
+        args = request.args
+        consult_id = args.get("consult_id")
 
         # jwt에서 user_id 뽑아오기
         user_id = get_jwt_identity()
@@ -78,16 +82,16 @@ class ScrapResource(Resource):
         cursor = connection.cursor()
 
         # 아직 판결문을 스크랩하지 않았으면 에러
-        query = """select * from bookmark where user_id = %s and case_id = %s"""
-        param = (user_id, case_serial_id,)
+        query = """select * from bookmark where user_id = %s and case_id = %s and consult_id = %s"""
+        param = (user_id, case_serial_id, consult_id)
         cursor.execute(query, param)
         result = cursor.fetchone()
         if result is None:
             return {"message": "아직 판결문을 스크랩하지 않았습니다."}, HTTPStatus.BAD_REQUEST
 
         # 스크랩 삭제하기
-        query = """delete from bookmark where user_id = %s and case_id = %s"""
-        param = (user_id, case_serial_id)
+        query = """delete from bookmark where user_id = %s and case_id = %s and consult_id = %s"""
+        param = (user_id, case_serial_id, consult_id)
 
         cursor.execute(query, param)
         connection.commit()
