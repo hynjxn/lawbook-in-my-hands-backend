@@ -3,6 +3,7 @@ from flask_jwt_extended import *
 from flask_restful import Api
 from config.config import Config
 from resources.logout import jwt_blocklist
+from resources.scrap import ScrapResource
 from resources.test import TestResource
 from resources.signup import SignupResource, LoginidResource
 from resources.login import LoginResource
@@ -37,6 +38,7 @@ api.add_resource(LoginidResource, '/loginid/<string:loginid>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(ConsultResource, '/consult')
 api.add_resource(ConsultGetResource, '/consult/<int:consult_id>')
+api.add_resource(ScrapResource, '/scrap/<int:case_serial_id>')
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0')
