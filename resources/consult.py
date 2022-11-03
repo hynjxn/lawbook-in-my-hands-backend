@@ -83,8 +83,10 @@ class ConsultResource(Resource):
             d = parse_response['PrecService']['사건번호']
             e = parse_response['PrecService']['판결유형']
             f = parse_response['PrecService']['사건명']
+            g = parse_response['PrecService']['판례정보일련번호']
 
-            case = {'법원명' : a, '선고일자' : b, '선고' : c, '사건번호' : d, '판결유형' : e, '사건명' : f, 'url' : url }
+
+            case = {'법원명' : a, '선고일자' : b, '선고' : c, '사건번호' : d, '판결유형' : e, '사건명' : f, 'case_serial_id' : g, 'url' : url }
             case_list.append(case)
 
         # 클라이언트에 응답
