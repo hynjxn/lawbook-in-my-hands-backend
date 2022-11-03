@@ -33,6 +33,8 @@ class ConsultResource(Resource):
         cursor.execute(query, param)
         connection.commit()
 
+        consult_id = cursor.lastrowid
+
         cursor.close()
         connection.close()
 
@@ -90,7 +92,7 @@ class ConsultResource(Resource):
             case_list.append(case)
 
         # 클라이언트에 응답
-        return {"cases" : case_list}, HTTPStatus.OK
+        return {"consult_id" : consult_id, "cases" : case_list}, HTTPStatus.OK
 
 
 class ConsultGetResource(Resource):
