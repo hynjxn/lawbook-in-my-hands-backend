@@ -3,11 +3,12 @@ from flask_jwt_extended import *
 from flask_restful import Api
 from config.config import Config
 from resources.logout import jwt_blocklist
-from resources.scrap import ScrapResource
+from resources.scrap import ScrapResource, ScrapListResource
 from resources.test import TestResource
 from resources.signup import SignupResource, LoginidResource
 from resources.login import LoginResource
 from resources.consult import ConsultResource, ConsultGetResource
+from resources.user import UserResource
 
 # Flask 객체 인스턴스 생성
 app = Flask(__name__)
@@ -39,6 +40,8 @@ api.add_resource(LoginResource, '/login')
 api.add_resource(ConsultResource, '/consult')
 api.add_resource(ConsultGetResource, '/consult/<int:consult_id>')
 api.add_resource(ScrapResource, '/scrap/<int:case_serial_id>')
+api.add_resource(ScrapListResource, '/scrap')
+api.add_resource(UserResource, '/user/profile')
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0')
