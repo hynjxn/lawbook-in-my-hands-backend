@@ -8,7 +8,7 @@ from resources.test import TestResource
 from resources.signup import SignupResource, LoginidResource
 from resources.login import LoginResource
 from resources.consult import ConsultResource, ConsultGetResource
-from resources.user import UserResource
+from resources.user import UserResource, PasswordResource
 
 # Flask 객체 인스턴스 생성
 app = Flask(__name__)
@@ -46,6 +46,7 @@ api.add_resource(ScrapResource, '/scrap/<int:case_serial_id>')
 api.add_resource(ScrapListResource, '/scrap')
 
 api.add_resource(UserResource, '/user/profile')
+api.add_resource(PasswordResource, '/user/password')
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0')
