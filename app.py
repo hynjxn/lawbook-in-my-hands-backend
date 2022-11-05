@@ -34,13 +34,17 @@ app.config.from_object(Config)
 api = Api(app)  # API 설정을 한다. 괄호 안에는 위에서 받은 플라스크 변수
 # 3. 경로(Path)와 리소스(Resource)를 연결 한다.
 api.add_resource(TestResource, '/test')
+
 api.add_resource(SignupResource, '/signup')
 api.add_resource(LoginidResource, '/loginid/<string:loginid>')
 api.add_resource(LoginResource, '/login')
+
 api.add_resource(ConsultResource, '/consult')
 api.add_resource(ConsultGetResource, '/consult/<int:consult_id>')
+
 api.add_resource(ScrapResource, '/scrap/<int:case_serial_id>')
 api.add_resource(ScrapListResource, '/scrap')
+
 api.add_resource(UserResource, '/user/profile')
 
 if __name__ == '__main__':

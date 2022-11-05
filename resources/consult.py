@@ -60,7 +60,8 @@ class ConsultResource(Resource):
         # 데이터베이스에서 판례 조회
         connection = get_mysql_connection()
         cursor = connection.cursor()
-        query = """select * from case_law c where c.case_serial_id in ({list}) """.format(list=', '.join(str(i) for i in index_list))
+        query = """select * from case_law c where c.case_serial_id in ({list}) """.format(
+            list=', '.join(str(i) for i in index_list))
 
         cursor.execute(query)
         result = cursor.fetchall()
@@ -87,32 +88,79 @@ class ConsultResource(Resource):
             f = parse_response['PrecService']['사건명']
             g = parse_response['PrecService']['판례정보일련번호']
 
-
-            case = {'법원명' : a, '선고일자' : b, '선고' : c, '사건번호' : d, '판결유형' : e, '사건명' : f, 'case_serial_id' : g, 'url' : url }
+            case = {'법원명': a, '선고일자': b, '선고': c, '사건번호': d, '판결유형': e, '사건명': f, 'case_serial_id': g, 'url': url}
             case_list.append(case)
 
         # 클라이언트에 응답
-        return {"consult_id" : consult_id, "cases" : case_list}, HTTPStatus.OK
+        return {"consult_id": consult_id, "cases": case_list}, HTTPStatus.OK
 
 
 class ConsultGetResource(Resource):
-
-    # 상담 단건 조회 api
+    # 이미 작성한 상담글로 판례 재검색 api
     @jwt_required()
     def get(self, consult_id):
-
-        # 데이터베이스에서 상담 조회
+        # 데이터베이스에서 consult_id로 상담글 조회
         connection = get_mysql_connection()
         cursor = connection.cursor()
-        query = """select * from consult where id = %s;"""
-        param = (consult_id,)
+        query = """select content from consult where id = %s;"""
+        param = (consult_id, )
 
         cursor.execute(query, param)
-        result = cursor.fetchone()
-
-        print(result)
+        content = cursor.fetchone()
 
         cursor.close()
         connection.close()
 
-        return {'consult_id' : result[0], 'content' : result[1], 'created_at' : str(result[3])}, HTTPStatus.OK
+        # doc2vec 모델로 유사한 판례 인덱스 찾기
+        # 지금 모델은 임시용 -> 추후에 모델 다시 학습해야 함
+        # 모델 학습시킬 때랑 똑같은 방법으로 전처리 진행해야 함
+        kom = Komoran()
+        doc2vec_model = Doc2Vec.load('doc2vec_model/d2v_judge_size200_min5_epoch20.model')
+
+        test = content[0]
+        tokened_test = ['/'.join(word) for word in kom.pos(test)]
+
+        topn = 5
+        test_vector = doc2vec_model.infer_vector(tokened_test)
+        result_list = doc2vec_model.docvecs.most_similar([test_vector], topn=topn)
+
+        index_list = []
+        for i in range(topn):
+            print("{}위, 유사도 :{}, 인덱스 :{} ".format(i + 1, result_list[i][1], result_list[i][0]))
+            index_list.append(int(result_list[i][0]))
+
+        # 데이터베이스에서 판례 조회
+        connection = get_mysql_connection()
+        cursor = connection.cursor()
+        query = """select * from case_law c where c.case_serial_id in ({list}) """.format(
+            list=', '.join(str(i) for i in index_list))
+
+        cursor.execute(query)
+        cases = cursor.fetchall()
+        print("cases : ", cases)
+
+        cursor.close()
+        connection.close()
+
+        # 조회한 판례의 url을 통해 데이터 가져오기
+        case_list = []
+
+        for i in range(len(cases)):
+            url = cases[i][2]
+            response = requests.get(url)
+            xd = XMLtoDict()
+            parse_response = xd.parse(response.content)
+
+            a = parse_response['PrecService']['법원명']
+            b = parse_response['PrecService']['선고일자']
+            c = parse_response['PrecService']['선고']
+            d = parse_response['PrecService']['사건번호']
+            e = parse_response['PrecService']['판결유형']
+            f = parse_response['PrecService']['사건명']
+            g = parse_response['PrecService']['판례정보일련번호']
+
+            case = {'법원명': a, '선고일자': b, '선고': c, '사건번호': d, '판결유형': e, '사건명': f, 'case_serial_id': g, 'url': url}
+            case_list.append(case)
+
+        # 클라이언트에 응답
+        return {"consult_id": consult_id, "cases": case_list}, HTTPStatus.OK
