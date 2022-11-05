@@ -118,7 +118,7 @@ class ScrapListResource(Resource):
         # 데이터베이스에서
         connection = get_mysql_connection()
         cursor = connection.cursor()
-        query = """select c.id as consult_id, c.content, cl.case_serial_id, cl.case_link as url
+        query = """select c.id as consult_id, c.content, cl.case_serial_id, cl.case_link as url, c.created_at
                     from lawbook.consult c
                         left join lawbook.bookmark b on c.id = b.consult_id
                         left join lawbook.case_law cl on b.case_id = cl.case_serial_id
@@ -138,7 +138,7 @@ class ScrapListResource(Resource):
         for i in range(len(consults)):
             if consults[i][0] == tmp_consult_id:
                 continue
-            consult = {"consult_id": consults[i][0], "consult_content": consults[i][1], "scrap_list": []}
+            consult = {"consult_id": consults[i][0], "consult_content": consults[i][1], "created_at" : str(consults[i][4]), "scrap_list": []}
             consult_list.append(consult)
 
             tmp_consult_id = consults[i][0]
