@@ -2,12 +2,12 @@ from flask import Flask
 from flask_jwt_extended import *
 from flask_restful import Api
 from config.config import Config
+from resources.consult_mecab import ConsultResource, ConsultGetResource
 from resources.logout import jwt_blocklist
 from resources.scrap import ScrapResource, ScrapListResource
 from resources.test import TestResource
 from resources.signup import SignupResource, LoginidResource
 from resources.login import LoginResource
-from resources.consult import ConsultResource, ConsultGetResource
 from resources.user import UserResource, PasswordResource
 
 # Flask 객체 인스턴스 생성
