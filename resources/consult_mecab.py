@@ -31,7 +31,7 @@ class ConsultResource(Resource):
         param = (data['content'], user_id)
 
         cursor.execute(query, param)
-        connection.commit()
+        # connection.commit()
 
         consult_id = cursor.lastrowid
 
@@ -46,14 +46,9 @@ class ConsultResource(Resource):
         m = Mecab()
         doc2vec_model = Doc2Vec.load('doc2vec_model_mecab/vec_300_window_8_dm.model')
 
-        test = data['content']
-
-        tokened_test = ['/'.join(word) for word in m.nouns(test)]
-        print('tokend_test : ', tokened_test)
-
+        inf_vector = doc2vec_model.infer_vector(m.nouns(data['content']))
         topn = 5
-        test_vector = doc2vec_model.infer_vector(tokened_test)
-        result_list = doc2vec_model.docvecs.most_similar([test_vector], topn=topn)
+        result_list = doc2vec_model.docvecs.most_similar([inf_vector], topn=topn)
 
         id_list = []
         for i in range(topn):
