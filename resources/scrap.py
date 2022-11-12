@@ -147,7 +147,7 @@ class ScrapListResource(Resource):
         tmp_consult_id = -1
         consult_num = 0
         for i in range(len(consults)):
-            if consult_num == len(consult_list):
+            if consult_num == len(consults):
                 break
 
             if consults[i][0] != tmp_consult_id:
