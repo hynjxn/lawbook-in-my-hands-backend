@@ -44,4 +44,4 @@ class LoginResource(Resource):
         access_token = create_access_token(identity=user_id, expires_delta= False)
 
         # 클라이언트에 토큰 보내기
-        return {'user_id' : user_id, 'access_token' : access_token}, HTTPStatus.OK
+        return {'user_id' : user_id, 'name': result[1], 'nickname':result[2], 'loginid':result[3], 'access_token' : access_token}, HTTPStatus.OK
