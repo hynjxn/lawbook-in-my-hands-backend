@@ -11,10 +11,10 @@ from resources.login import LoginResource
 from resources.user import UserResource, PasswordResource
 
 # Flask 객체 인스턴스 생성
-app = Flask(__name__)
+application = Flask(__name__)
 
 # jwt 환경 설정
-jwt = JWTManager(app)
+jwt = JWTManager(application)
 # 로그인/로그아웃 관리를 위한s jwt 설정
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload):
@@ -23,15 +23,15 @@ def check_if_token_is_revoked(jwt_header, jwt_payload):
 
 
 # 접속 url 설정
-@app.route('/')
+@application.route('/')
 def hello_world():  # put application's code here
     return 'Hello World!'
 
 
 # 1. 환경변수 설정
-app.config.from_object(Config)
+application.config.from_object(Config)
 # 2. api 설정
-api = Api(app)  # API 설정을 한다. 괄호 안에는 위에서 받은 플라스크 변수
+api = Api(application)  # API 설정을 한다. 괄호 안에는 위에서 받은 플라스크 변수
 # 3. 경로(Path)와 리소스(Resource)를 연결 한다.
 api.add_resource(TestResource, '/test')
 
@@ -49,4 +49,4 @@ api.add_resource(UserResource, '/user/profile')
 api.add_resource(PasswordResource, '/user/password')
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0')
+    application.run(debug=False, host='0.0.0.0')
