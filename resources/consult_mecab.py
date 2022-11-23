@@ -1,4 +1,3 @@
-
 import requests
 from flask import request
 from flask_restful import Resource
@@ -55,7 +54,7 @@ class ConsultResource(Resource):
             print("{}위, 유사도 :{}, tagID :{} ".format(i + 1, result_list[i][1], result_list[i][0]))
             id_list.append(int(result_list[i][0]))
 
-        print("유사도 높은 순으로 id 리스트 : ", id_list)
+        # print("유사도 높은 순으로 id 리스트 : ", id_list)
 
         # 데이터베이스에서 판례 조회
         connection = get_mysql_connection()
@@ -65,7 +64,7 @@ class ConsultResource(Resource):
 
         cursor.execute(query)
         result = cursor.fetchall()
-        print("old : ", result) #현재 result 리스트는 유사도 높은순이 아님
+        # print("old : ", result)  # 현재 result 리스트는 유사도 높은순이 아님
 
         cursor.close()
         connection.close()
@@ -77,7 +76,7 @@ class ConsultResource(Resource):
                 if result[j][0] == id_list[i]:
                     new_result.append(result[j])
 
-        print("new : ", new_result)
+        # print("new : ", new_result)
 
         # 조회한 판례의 url을 통해 데이터 가져오기
         case_list = []
@@ -87,7 +86,7 @@ class ConsultResource(Resource):
             response = requests.get(url)
             xd = XMLtoDict()
             parse_response = xd.parse(response.content)
-            print("parse_response : ", parse_response)
+            # print("parse_response : ", parse_response)
 
             a = parse_response['PrecService']['법원명']
             b = parse_response['PrecService']['선고일자']
@@ -99,7 +98,8 @@ class ConsultResource(Resource):
             case_id = new_result[i][0]
             similarity = result_list[i][1]
 
-            case = {'법원명': a, '선고일자': b, '선고': c, '사건번호': d, '판결유형': e, '사건명': f, 'case_id' : case_id, 'case_serial_id': g, 'url': url, '유사도' : similarity}
+            case = {'법원명': a, '선고일자': b, '선고': c, '사건번호': d, '판결유형': e, '사건명': f, 'case_id': case_id,
+                    'case_serial_id': g, 'url': url, '유사도': similarity}
             case_list.append(case)
 
         # 클라이언트에 응답
@@ -115,7 +115,7 @@ class ConsultGetResource(Resource):
         connection = get_mysql_connection()
         cursor = connection.cursor()
         query = """select content from consult where id = %s;"""
-        param = (consult_id, )
+        param = (consult_id,)
 
         cursor.execute(query, param)
         content = cursor.fetchone()
@@ -137,7 +137,7 @@ class ConsultGetResource(Resource):
         for i in range(topn):
             print("{}위, 유사도 :{}, tagID :{} ".format(i + 1, result_list[i][1], result_list[i][0]))
             id_list.append(int(result_list[i][0]))
-        print("유사도 높은 순으로 id 리스트 : ", id_list)
+        # print("유사도 높은 순으로 id 리스트 : ", id_list)
 
         # 데이터베이스에서 판례 조회
         connection = get_mysql_connection()
@@ -147,7 +147,7 @@ class ConsultGetResource(Resource):
 
         cursor.execute(query)
         result = cursor.fetchall()
-        print("old : ", result)  # 현재 result 리스트는 유사도 높은순이 아님
+        # print("old : ", result)  # 현재 result 리스트는 유사도 높은순이 아님
 
         cursor.close()
         connection.close()
@@ -159,7 +159,7 @@ class ConsultGetResource(Resource):
                 if result[j][0] == id_list[i]:
                     new_result.append(result[j])
 
-        print("new : ", new_result)
+        # print("new : ", new_result)
 
         # 조회한 판례의 url을 통해 데이터 가져오기
         case_list = []
@@ -169,7 +169,7 @@ class ConsultGetResource(Resource):
             response = requests.get(url)
             xd = XMLtoDict()
             parse_response = xd.parse(response.content)
-            print("parse_response : ", parse_response)
+            # print("parse_response : ", parse_response)
 
             a = parse_response['PrecService']['법원명']
             b = parse_response['PrecService']['선고일자']
@@ -187,3 +187,26 @@ class ConsultGetResource(Resource):
 
         # 클라이언트에 응답
         return {"consult_id": consult_id, "cases": case_list}, HTTPStatus.OK
+
+    # 상담 삭제
+    @jwt_required()
+    def delete(self, consult_id):
+        # 데이터베이스에서 consult_id로 상담글 삭제
+        connection = get_mysql_connection()
+        cursor = connection.cursor()
+
+        query = """delete from bookmark where consult_id = %s;"""
+        param = (consult_id,)
+        cursor.execute(query, param)
+
+        query = """delete from consult where id = %s;"""
+        param = (consult_id,)
+        cursor.execute(query, param)
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        # 클라이언트에 응답
+        return {}, HTTPStatus.OK

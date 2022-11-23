@@ -53,7 +53,7 @@ class LoginidResource(Resource):
 
         cursor.execute(query, param)
         result = cursor.fetchone()
-        print(result)
+        # print(result)
 
         cursor.close()
         connection.close()
